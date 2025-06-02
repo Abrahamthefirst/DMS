@@ -13,7 +13,8 @@ class authController {
         res.status(400).json({ message: error.message });
         return;
       }
-      const user = await authService.registerUser(value);
+      console.log("This is value", value, "Req body", req.body)
+      const user = await authService.registerUser(req.body);
       const { refresh_token, ...userDetails } = user;
 
       res.cookie("jwt", refresh_token, {
@@ -26,7 +27,7 @@ class authController {
       res.status(200).json(user);
     } catch (err) {
       console.log(err);
-      throw err;
+      // throw err;
     }
   }
   static async login(req: Request, res: Response): Promise<void> {

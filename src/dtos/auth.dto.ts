@@ -4,16 +4,25 @@ export class UserRegisterDTO {
   constructor(
     public username: string,
     public email: string,
-    public password: string
+    public password: string,
+    public phone_number: string,
+    public role: "ADMIN" | "EDITOR" | "VIEWER"
   ) {}
   static validate(data: any): ValidationResult {
+    console.log(data);
     const { error, value } = registrationSchema.validate(data);
-    const dtoInstance = new UserRegisterDTO(
-      value.username,
-      value.email,
-      value.password
-    );
-    return { error, value: dtoInstance };
+    console.log(value, error);
+    if (!error) {
+      const dtoInstance = new UserRegisterDTO(
+        value.username,
+        value.email,
+        value.password,
+        value.phone_number,
+        value.role
+      );
+      return { error, value: dtoInstance };
+    }
+    return { error, value };
   }
 }
 
@@ -22,7 +31,10 @@ export class UserLoginDTO {
 
   static validate(data: any): ValidationResult {
     const { error, value } = loginSchema.validate(data);
-    const dtoInstance = new UserLoginDTO(value.email, value.password);
-    return { error, value: dtoInstance };
+    if (!error) {
+      const dtoInstance = new UserLoginDTO(value.email, value.password);
+      return { error, value: dtoInstance };
+    }
+    return { error, value };
   }
 }

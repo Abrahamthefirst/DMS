@@ -17,11 +17,11 @@ datasource db {
 model User{
   id Int @id @default(autoincrement())
   username String
-  hashed_password String
+  hashed_password String?
   email String @unique
   email_verified Boolean @default(false)
   picture String?
-  phone_number String @unique
+  phone_number String? @unique
   refresh_token String?
   role Role
   documents Document[]
