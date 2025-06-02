@@ -10,7 +10,7 @@ export const generateRefreshJwt = function (payload: object) {
   return jwt.sign(payload, refreshSecret, { expiresIn: "1d" });
 };
 
-export const verifyAccessJwt = function (token: string): JwtPayload {
+export const verifyAccessJwt = function (token: string): JwtPayload | string {
   try {
     const payload = jwt.verify(token, accessSecret);
     return payload;
@@ -19,7 +19,7 @@ export const verifyAccessJwt = function (token: string): JwtPayload {
   }
 };
 
-export const verifyRefreshJwt = function (token: string): JwtPayload {
+export const verifyRefreshJwt = function (token: string): JwtPayload | string{
   try {
     const payload = jwt.verify(token, refreshSecret);
     return payload;

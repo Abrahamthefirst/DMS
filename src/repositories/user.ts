@@ -1,10 +1,13 @@
-import { UserRegisterDTO } from "../dtos/auth.dto";
 import { User } from "../generated/prisma";
 import prisma from "../config/dbConfig";
 class UserRepo {
-  static async createUser(user: Partial<User>): Promise<User> {
+  static async createUser(data: Required<Pick<User, "email" | "username" | "hashed_password" | "role" |"phone_number">> & Partial<User>): Promise<User> {
     try {
-      const userData = await prisma.user.create({ user });
+      // console.log(user, typeof user, "This is of typeof user");
+
+      const userData = await prisma.user.create({
+        data,
+      });
       return userData;
     } catch (err) {
       console.log(err);

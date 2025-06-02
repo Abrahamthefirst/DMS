@@ -6,13 +6,12 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
-    "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2",
-    "@types/node": "^22.15.21",
+    "@types/node": "^22.15.29",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.53.0",
     "cors": "^2.8.5",
@@ -24,16 +23,18 @@
     "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "prisma": "^6.8.2",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "description": "Document Management System",
   "author": "Abraham",
   "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/nodemailer": "^6.4.17",
     "@types/passport": "^1.0.17",
-    "@types/passport-google-oauth20": "^2.0.16"
+    "@types/passport-google-oauth20": "^2.0.16",
+    "prisma": "^6.8.2",
+    "ts-node": "^10.9.2"
   }
 }

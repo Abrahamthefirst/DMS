@@ -18,10 +18,9 @@ class authService {
     const hashed_password = bcrypt.hashSync(data.password);
 
     const { password, ...userDetails } = data;
-
     const user = await UserRepo.createUser({ ...userDetails, hashed_password });
-    const access_token = generateJWT({ id: user.id });
     const refresh_token = generateRefreshJwt({ user });
+    const access_token = generateJWT({ id: user.id });
     const verificationToken = generateJWT({ email: user.email });
     await emailQueue.add("send", {
       subject: "Email Verification",
@@ -65,7 +64,8 @@ class authService {
   }
 
   static async loginWithGoogle(profile: { [key: string]: any }) {
-    const email = profile.email;
+    const email = profile.email as string;
+    const username = profile.displayName as string
     let user = await UserRepo.getUserByEmail(email);
     let accessToken;
     let refreshToken;
@@ -79,8 +79,9 @@ class authService {
 
     const newUser = await UserRepo.createUser({
       email,
-      username: profile.displayName,
+      username,
       refresh_token: refreshToken,
+      role: "VIEWER",
       picture: profile.picture,
     });
 
@@ -91,7 +92,7 @@ class authService {
   }
   static async verifyEmail(token: string): Promise<boolean> {
     try {
-      const decoded = verifyAccessJwt(token);
+      const decoded = verifyAccessJwt(token) as { [key: string]: any };
       const user = await UserRepo.getUserByEmail(decoded.email);
       if (user) {
         UserRepo.updateUserByEmail({ ...user, email_verified: true });
@@ -145,9 +146,9 @@ class authService {
     }
   }
 
-  static async getAccessToken(token: string): Promise<boolean> {
+  static async getAccessToken(token: string): Promise<any> {
     try {
-      const user = verifyRefreshJwt(token);
+      const user = verifyRefreshJwt(token) as { [key: string]: string };
 
       if (!user) return false;
 
