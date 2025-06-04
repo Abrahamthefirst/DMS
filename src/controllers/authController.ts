@@ -16,7 +16,6 @@ class authController {
         res.status(400).json({ message: error.message });
         return;
       }
-      console.log("This is value", value, "Req body", req.body)
       const user = await authService.registerUser(req.body);
       const { refresh_token, ...userDetails } = user;
 
