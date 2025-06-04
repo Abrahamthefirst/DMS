@@ -8,7 +8,10 @@ class authController {
     next: NextFunction
   ): Promise<void> {
     try {
+
+      console.log("This is he reques")
       const { error, value } = UserRegisterDTO.validate(req.body);
+      
       if (error) {
         res.status(400).json({ message: error.message });
         return;
@@ -32,6 +35,7 @@ class authController {
   }
   static async login(req: Request, res: Response): Promise<void> {
     try {
+      console.log("Trying to login")
       const { error, value } = UserLoginDTO.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.message });

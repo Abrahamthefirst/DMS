@@ -1,10 +1,10 @@
 import { Worker } from "bullmq";
 
-import { redisConnection } from "../config/queue";
 import emailVerification from "../templates/emailVerification";
 import emailService from "../services/emailService";
-
+import IoRedis from "ioredis"
 const service = new emailService();
+const connection = new IoRedis({maxRetriesPerRequest: null})
 
 const worker = new Worker(
   "email",
@@ -24,5 +24,5 @@ const worker = new Worker(
       console.log(err);
     }
   },
-  { connection: redisConnection }
+  { connection }
 );

@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoute from "./routes/authRoute";
-import authenticate from "./middleware/authenticate";
+// import authenticate from "./middleware/authenticate";
 import { googleAuthStrategy } from "./middleware/passport";
 import prisma from "./config/dbConfig";
 import passport from 'passport'
@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(passport.initialize())
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+// app.use(express.urlencoded({extended: true}))
 googleAuthStrategy()
 
 const PORT = process.env.PORT;
@@ -30,7 +30,7 @@ declare module "express" {
 }
 
 app.use("/auth", authRoute);
-app.use(authenticate)
+// app.use(authenticate)
 app.listen(PORT, () => {
   console.log(`server is listening on ${PORT}`);
 });

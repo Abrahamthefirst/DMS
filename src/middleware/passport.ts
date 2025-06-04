@@ -1,16 +1,16 @@
 import passport from "passport";
-import { RequestHandler } from "express";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import { Request } from "express";
 
-const clientID = process.env.GOOGLE_CLIENT_ID!
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET!
+
+
+console.log(clientID, clientSecret)
 export const googleAuthStrategy = () => {
   passport.use(
     new GoogleStrategy(
       {
-        clientID,
-        clientSecret,
+        clientID: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         callbackURL: "http://localhost:3000/auth/api/session/oauth/google",
         passReqToCallback: true,
       },

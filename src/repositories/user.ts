@@ -1,7 +1,7 @@
 import { User } from "../generated/prisma";
 import prisma from "../config/dbConfig";
 class UserRepo {
-  static async createUser(data: Required<Pick<User, "email" | "username" | "hashed_password" | "role" |"phone_number">> & Partial<User>): Promise<User> {
+  static async createUser(data: Required<Pick<User, "email" | "username"  | "role" >> & Partial<User>): Promise<User> {
     try {
       // console.log(user, typeof user, "This is of typeof user");
 

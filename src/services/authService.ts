@@ -15,27 +15,34 @@ class authService {
   static async registerUser(
     data: UserRegisterDTO
   ): Promise<User & { access_token: string; refresh_token: string }> {
-    const hashed_password = bcrypt.hashSync(data.password);
+    try {
+      const hashed_password = bcrypt.hashSync(data.password);
 
-    const { password, ...userDetails } = data;
-    const user = await UserRepo.createUser({ ...userDetails, hashed_password });
-    const refresh_token = generateRefreshJwt({ user });
-    const access_token = generateJWT({ id: user.id });
-    const verificationToken = generateJWT({ email: user.email });
-    await emailQueue.add("send", {
-      subject: "Email Verification",
-      to: user.email,
-      username: user.username,
-      link: `http://localhost:3000/auth/email/verification/verify_by_link?token=${verificationToken}`,
-      expiration: "1hr",
-    });
+      const { password, ...userDetails } = data;
+      const user = await UserRepo.createUser({
+        ...userDetails,
+        hashed_password,
+      });
+      const refresh_token = generateRefreshJwt({ user });
+      const access_token = generateJWT({ id: user.id });
+      const verificationToken = generateJWT({ email: user.email });
+      await emailQueue.add("send", {
+        subject: "Email Verification",
+        to: user.email,
+        username: user.username,
+        link: `http://localhost:3000/auth/email/verification/verify_by_link?token=${verificationToken}`,
+        expiration: "1hr",
+      });
 
-    await UserRepo.updateUserById({
-      id: user.id,
-      refresh_token,
-    });
+      await UserRepo.updateUserById({
+        id: user.id,
+        refresh_token,
+      });
 
-    return { ...user, access_token, refresh_token };
+      return { ...user, access_token, refresh_token };
+    } catch (err) {
+      throw err;
+    }
   }
 
   static async loginUser(
@@ -45,8 +52,9 @@ class authService {
   > {
     try {
       const user = await UserRepo.getUserByEmail(data.email);
+      const hashed_password = user?.hashed_password as string;
       if (!user) return "Email not found";
-      const auth = bcrypt.compareSync(data.password, user.hashed_password);
+      const auth = bcrypt.compareSync(data.password, hashed_password);
 
       if (!auth) return "Password incorrect";
       const access_token = generateJWT({ id: user.id });
@@ -65,7 +73,7 @@ class authService {
 
   static async loginWithGoogle(profile: { [key: string]: any }) {
     const email = profile.email as string;
-    const username = profile.displayName as string
+    const username = profile.displayName as string;
     let user = await UserRepo.getUserByEmail(email);
     let accessToken;
     let refreshToken;
@@ -128,10 +136,10 @@ class authService {
     try {
       const { oldPassword, newPassword, email } = data;
       let user = (await UserRepo.getUserByEmail(email)) as User;
-
+      const hashed_password = user.hashed_password as string;
       const passwordVersionCheck = bcrypt.compareSync(
         newPassword,
-        user.hashed_password
+        hashed_password
       );
 
       if (passwordVersionCheck) return false;

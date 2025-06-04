@@ -3,6 +3,7 @@ import authController from "../controllers/authController";
 import passport from "passport";
 const router = express.Router();
 
+
 router.post("/signup", authController.signup);
 
 router.post("/login", authController.login);
