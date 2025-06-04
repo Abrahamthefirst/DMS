@@ -4,7 +4,6 @@ import { Request } from "express";
 
 
 
-console.log(clientID, clientSecret)
 export const googleAuthStrategy = () => {
   passport.use(
     new GoogleStrategy(
