@@ -2,8 +2,6 @@ import passport from "passport";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import { Request } from "express";
 
-
-
 export const googleAuthStrategy = () => {
   passport.use(
     new GoogleStrategy(
