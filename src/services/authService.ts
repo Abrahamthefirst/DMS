@@ -45,6 +45,24 @@ class authService {
     }
   }
 
+  static async getEmailVerificationLink(email: string): Promise<boolean> {
+    try {
+      const user = await UserRepo.getUserByEmail(email);
+
+      if (!user) return false;
+      const verificationToken = generateJWT({ email: user.email });
+      await emailQueue.add("send", {
+        subject: "Email Verification",
+        to: user.email,
+        username: user.username,
+        link: `http://localhost:3000/auth/email/verification/verify_by_link?token=${verificationToken}`,
+        expiration: "1hr",
+      });
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  }
   static async loginUser(
     data: UserLoginDTO
   ): Promise<

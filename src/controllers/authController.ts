@@ -8,10 +8,9 @@ class authController {
     next: NextFunction
   ): Promise<void> {
     try {
-
-      console.log("This is he reques")
+      console.log("This is he reques");
       const { error, value } = UserRegisterDTO.validate(req.body);
-      
+
       if (error) {
         res.status(400).json({ message: error.message });
         return;
@@ -34,7 +33,7 @@ class authController {
   }
   static async login(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Trying to login")
+      console.log("Trying to login");
       const { error, value } = UserLoginDTO.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.message });
@@ -58,6 +57,22 @@ class authController {
     } catch (err) {
       console.log(err);
       throw err;
+    }
+  }
+
+  static async emailVerificationLink(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const response = await authService.getEmailVerificationLink(
+        req.body.email
+      );
+      if (response)
+        res.json({ message: "Check your email to to verify your account" });
+    } catch (err) {
+      next(err);
     }
   }
   static async verifyEmail(req: Request, res: Response): Promise<void> {

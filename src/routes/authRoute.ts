@@ -3,7 +3,6 @@ import authController from "../controllers/authController";
 import passport from "passport";
 const router = express.Router();
 
-
 router.post("/signup", authController.signup);
 
 router.post("/login", authController.login);
@@ -19,7 +18,8 @@ router.post(
   authController.googleAuth
 );
 
-router.post("/verify-email", authController.verifyEmail);
+router.post("email/request_email_verification", authController.emailVerificationLink)
+router.post("/email/verify-email", authController.verifyEmail);
 
 router.post("/forgot-password", authController.forgotPassword);
 
