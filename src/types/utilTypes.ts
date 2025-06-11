@@ -5,3 +5,5 @@ export type resetPasswordType = {
   oldPassword: string;
   newPassword: string;
 };
+
+export type Roles = "ADMIN" | "EDITOR" | "VIEWER";
