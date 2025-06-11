@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import authService from "../services/authService";
+import { GoneError } from "../utils/error";
 import { UserLoginDTO, UserRegisterDTO } from "../dtos/auth.dto";
 class authController {
   static async signup(
@@ -8,10 +9,8 @@ class authController {
     next: NextFunction
   ): Promise<void> {
     try {
-
-      console.log("This is he reques")
       const { error, value } = UserRegisterDTO.validate(req.body);
-      
+
       if (error) {
         res.status(400).json({ message: error.message });
         return;
@@ -28,13 +27,13 @@ class authController {
 
       res.status(200).json(user);
     } catch (err) {
-      console.log(err);
-      // throw err;
+      next(err);
+      throw err;
     }
   }
   static async login(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Trying to login")
+      console.log("Trying to login");
       const { error, value } = UserLoginDTO.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.message });
@@ -54,13 +53,17 @@ class authController {
         sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000,
       });
-      res.status(200).json(user);
+      res.status(200).json(userDetails);
     } catch (err) {
       console.log(err);
       throw err;
     }
   }
-  static async verifyEmail(req: Request, res: Response): Promise<void> {
+  static async verifyEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const token = req.query.token as string;
 
@@ -71,12 +74,7 @@ class authController {
 
       return res.redirect("");
     } catch (err) {
-      const error = err as Error;
-      if (error.name === "Token Expired Error")
-        res.status(400).json({
-          message: "Link has expired, request for a new verification link",
-        });
-      return;
+      next(err);
     }
   }
   static async forgotPassword(req: Request, res: Response): Promise<void> {

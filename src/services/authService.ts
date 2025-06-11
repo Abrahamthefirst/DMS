@@ -3,6 +3,7 @@ import { UserRegisterDTO, UserLoginDTO } from "../dtos/auth.dto";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "../config/queue";
 import { resetPasswordType } from "../types/utilTypes";
+import { TokenExpiredError } from "jsonwebtoken";
 import { User } from "../generated/prisma";
 import {
   generateJWT,
@@ -10,6 +11,7 @@ import {
   verifyAccessJwt,
   verifyRefreshJwt,
 } from "../utils/token";
+import { GoneError } from "../utils/error";
 
 class authService {
   static async registerUser(
@@ -108,6 +110,9 @@ class authService {
       }
       return false;
     } catch (err) {
+      if (err instanceof TokenExpiredError){
+        throw new GoneError("Verification link has expired, request for a new one")
+      }
       throw err;
     }
   }

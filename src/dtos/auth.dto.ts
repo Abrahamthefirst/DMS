@@ -1,17 +1,16 @@
 import { registrationSchema, loginSchema } from "../validations/userValidation";
 import { ValidationResult } from "joi";
+import { Roles } from "../types/utilTypes";
 export class UserRegisterDTO {
   constructor(
     public username: string,
     public email: string,
     public password: string,
     public phone_number: string,
-    public role: "ADMIN" | "EDITOR" | "VIEWER"
+    public role: Roles
   ) {}
   static validate(data: any): ValidationResult {
-    console.log(data);
     const { error, value } = registrationSchema.validate(data);
-    console.log(value, error);
     if (!error) {
       const dtoInstance = new UserRegisterDTO(
         value.username,
