@@ -1,29 +1,29 @@
 import { User } from "../generated/prisma";
 import { Prisma } from "../generated/prisma";
 import { ConflictError } from "../utils/error";
-import prisma from "../config/dbConfig";
+import { PrismaClient } from "@prisma/client";
 class UserRepo {
-  static async createUser(
+  constructor(private prisma: PrismaClient) {}
+  async createUser(
     data: Required<Pick<User, "email" | "username" | "role">> & Partial<User>
   ): Promise<User> {
     try {
-      const userData = await prisma.user.create({
+      const userData = await this.prisma.user.create({
         data,
       });
       return userData;
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        // The .code property can be accessed in a type-safe manner
         if (err.code === "P2002") {
-          throw new ConflictError("Email already exits, try logging in")
+          throw new ConflictError("Email already exits, try logging in");
         }
       }
-      throw err
+      throw err;
     }
   }
-  static async getUserByEmail(email: string): Promise<User | null> {
+  async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const userData = await prisma.user.findUnique({
+      const userData = await this.prisma.user.findUnique({
         where: {
           email,
         },
@@ -34,9 +34,9 @@ class UserRepo {
     }
   }
 
-  static async getUserById(id: number): Promise<User | null> {
+  async getUserById(id: number): Promise<User | null> {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: {
           id,
         },
@@ -47,10 +47,10 @@ class UserRepo {
     }
   }
 
-  static async updateUserById(user: Partial<User>): Promise<User | null> {
+  async updateUserById(user: Partial<User>): Promise<User | null> {
     try {
       const { id, ...data } = user;
-      const userData = await prisma.user.update({
+      const userData = await this.prisma.user.update({
         where: {
           id,
         },
@@ -63,10 +63,10 @@ class UserRepo {
     }
   }
 
-  static async updateUserByEmail(user: Partial<User>): Promise<User | null> {
+  async updateUserByEmail(user: Partial<User>): Promise<User | null> {
     try {
       const { email, ...data } = user;
-      const userData = await prisma.user.update({
+      const userData = await this.prisma.user.update({
         where: {
           email,
         },
@@ -78,9 +78,9 @@ class UserRepo {
       throw err;
     }
   }
-  static async deleteUserById(id: number): Promise<User | null> {
+  async deleteUserById(id: number): Promise<User | null> {
     try {
-      const user = await prisma.user.delete({
+      const user = await this.prisma.user.delete({
         where: {
           id,
         },

@@ -1,32 +1,37 @@
 import express from "express";
-import authController from "../controllers/authController";
+import AuthController from "../api/auth/auth.controller";
 import passport from "passport";
-const router = express.Router();
 
-router.post("/signup", authController.signup);
+export function createAuthRouter(authController: AuthController) {
+  const router = express.Router();
 
-router.post("/login", authController.login);
+  router.post("/signup", authController.signup);
 
-router.get(
-  "/login/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+  router.post("/login", authController.login);
 
-router.post(
-  "/api/session/oauth/google",
-  passport.authenticate("google", { failureRedirect: "/", session: false }),
-  authController.googleAuth
-);
+  router.get(
+    "/login/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
 
-router.post("email/request_email_verification", authController.emailVerificationLink)
-router.post("/email/verify-email", authController.verifyEmail);
+  router.post(
+    "/api/session/oauth/google",
+    passport.authenticate("google", { failureRedirect: "/", session: false }),
+    authController.googleAuth
+  );
 
-router.post("/forgot-password", authController.forgotPassword);
+  router.post(
+    "email/request_email_verification",
+    authController.emailVerificationLink
+  );
+  router.post("/email/verify-email", authController.verifyEmail);
 
-router.post("/reset-password", authController.resetPassword);
+  router.post("/forgot-password", authController.forgotPassword);
 
-router.post("/refresh-token", authController.refreshToken);
+  router.post("/reset-password", authController.resetPassword);
 
-router.post("/logout", authController.logout);
+  router.post("/refresh-token", authController.refreshToken);
 
-export default router;
+  router.post("/logout", authController.logout);
+  return router;
+}

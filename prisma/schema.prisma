@@ -32,11 +32,12 @@ model User{
 model Document{
   id Int  @id @default(autoincrement())
   title String
-  filePath String
+  url String
   fileType String
+  publicId String
   fileSize Int
-  user User @relation(fields: [uploaderId], references: [id])
-  uploaderId Int
+  user User? @relation(fields: [uploaderId], references: [id])
+  uploaderId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -8,9 +8,9 @@ export const registrationSchema = Joi.object({
     .required(),
   phone_number: Joi.string(),
   role: Joi.string().valid("EDITOR", "VIEWER", "ADMIN").required(),
-});
+}).required();
 
 export const loginSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-});
+}).required();

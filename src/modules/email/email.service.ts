@@ -1,8 +1,8 @@
-import { MailClient } from "../config/emailConfig";
-import { NodemailerClient } from "../config/emailConfig";
-import "../queues/email"
-class emailService {
-  constructor(private mailClient: MailClient = new NodemailerClient()) {
+import { MailClient } from "../../config/emailConfig";
+import { NodemailerClient } from "../../config/emailConfig";
+import "../../queues/email";
+class EmailService {
+  constructor(private mailClient: MailClient) {
     this.mailClient = mailClient;
   }
 
@@ -20,4 +20,4 @@ class emailService {
   }
 }
 
-export default emailService;
+export default EmailService;

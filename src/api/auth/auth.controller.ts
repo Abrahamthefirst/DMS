@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import authService from "../services/authService";
-import { GoneError } from "../utils/error";
-import { UserLoginDTO, UserRegisterDTO } from "../dtos/auth.dto";
-class authController {
-  static async signup(
+import AuthService from "../../modules/auth/auth.service";
+import { GoneError } from "../../utils/error";
+import { UserLoginDTO, UserRegisterDTO } from "./auth.dto";
+class AuthController {
+  constructor(private authService: AuthService) {}
+  signup = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const { error, value } = UserRegisterDTO.validate(req.body);
 
@@ -15,7 +16,7 @@ class authController {
         res.status(400).json({ message: error.message });
         return;
       }
-      const user = await authService.registerUser(req.body);
+      const user = await this.authService.registerUser(req.body);
       const { refresh_token, ...userDetails } = user;
 
       res.cookie("jwt", refresh_token, {
@@ -30,16 +31,19 @@ class authController {
       next(err);
       throw err;
     }
-  }
-  static async login(req: Request, res: Response): Promise<void> {
+  };
+  login = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      console.log("Trying to login");
       const { error, value } = UserLoginDTO.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.message });
         return;
       }
-      const user = await authService.loginUser(value);
+      const user = await this.authService.loginUser(value);
       if (typeof user === "string") {
         res.status(400).json({ message: user });
         return;
@@ -58,16 +62,33 @@ class authController {
       console.log(err);
       throw err;
     }
-  }
-  static async verifyEmail(
+  };
+
+  emailVerificationLink = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
+    try {
+      const response = await this.authService.getEmailVerificationLink(
+        req.body.email
+      );
+      if (response)
+        res.json({ message: "Check your email for a verification link" });
+    } catch (err) {
+      next(err);
+      console.log(err);
+    }
+  };
+  verifyEmail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const token = req.query.token as string;
 
-      const response = await authService.verifyEmail(token);
+      const response = await this.authService.verifyEmail(token);
 
       // Come back to put a frontend url
       if (response) res.redirect("");
@@ -76,10 +97,14 @@ class authController {
     } catch (err) {
       next(err);
     }
-  }
-  static async forgotPassword(req: Request, res: Response): Promise<void> {
+  };
+  forgotPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      const response = await authService.forgetPassword(req.body.email);
+      const response = await this.authService.forgetPassword(req.body.email);
 
       if (!response) {
         res.status(400).json({ message: "Email not found" });
@@ -89,11 +114,17 @@ class authController {
       res.status(200).json({ message: "Check mail to reset your password" });
     } catch (err) {
       console.log(err);
+
+      next(err);
     }
-  }
-  static async resetPassword(req: Request, res: Response): Promise<void> {
+  };
+  resetPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      const response = await authService.resetPassword(req.body);
+      const response = await this.authService.resetPassword(req.body);
 
       if (!response) {
         res
@@ -106,12 +137,17 @@ class authController {
         .status(200)
         .json({ message: "Password has been updated successfully" });
     } catch (err) {
+      next(err);
       console.log(err);
     }
-  }
-  static async refreshToken(req: Request, res: Response): Promise<void> {
+  };
+  refreshToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      const response = await authService.getAccessToken(
+      const response = await this.authService.getAccessToken(
         req.cookies.refreshToken
       );
       if (response) res.status(200).json({ response });
@@ -120,23 +156,28 @@ class authController {
       if (error.name === "Token Expired Error") {
         res.status(200).json({ message: "You need to login" });
       }
+      next(err);
     }
-  }
-  static async logout(req: Request, res: Response): Promise<void> {
+  };
+  logout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = req.user?.id as string;
-      const response = await authService.logoutUser(id);
+      const response = await this.authService.logoutUser(id);
       if (response) res.status(200).json({ message: "Logout Successful" });
     } catch (err) {
       console.log(err);
+      next(err);
     }
-  }
+  };
 
-  static async googleAuth(req: Request, res: Response) {
+  googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { accessToken, refreshToken } = await authService.loginWithGoogle(
-        req.user!
-      );
+      const { accessToken, refreshToken } =
+        await this.authService.loginWithGoogle(req.user!);
 
       res.cookie("jwt", refreshToken, {
         httpOnly: true,
@@ -148,8 +189,9 @@ class authController {
     } catch (err) {
       const error = err as Error;
       res.status(400).json({ message: error.message });
+      next(err);
     }
-  }
+  };
 }
 
-export default authController;
+export default AuthController;

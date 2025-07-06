@@ -20,10 +20,7 @@ export default function authenticate(
       const decoded = verifyAccessJwt(token) as decoded;
 
       req.user = { id: decoded.id, ...decoded };
-      if (req.user.role != "EDITOR") {
-        return res.status(403).json({ message: "Permission Denied" });
-      }
-
+      if (req.user.role != "EDITOR")  res.status(403).json({ message: "Permission Denied" });
       next();
     } catch (err) {
       if (err instanceof TokenExpiredError) {

@@ -21,15 +21,15 @@ export default function authenticate(
 
       req.user = { id: decoded.id, ...decoded };
       if (req.user.role != "ADMIN") {
-        return res.status(403).json({ message: "Permission Denied" });
+        res.status(403).json({ message: "Permission Denied" });
       }
 
       next();
     } catch (err) {
       if (err instanceof TokenExpiredError) {
-        res.status(401).json({ message: "Token expired" });
+        res.status(401).json({ message: "Token Expired" });
       } else {
-        res.status(403).json({ message: "Invalid token" });
+        res.status(403).json({ message: "Invalid Token" });
       }
     }
   } else {

@@ -6,4 +6,13 @@ export type resetPasswordType = {
   newPassword: string;
 };
 
+export type uploadedResultType = {
+  url: string;
+  publicId: string;
+  fileType: string;
+  fileSize: string;
+  title: string;
+};
+
+
 export type Roles = "ADMIN" | "EDITOR" | "VIEWER";

@@ -1,27 +1,29 @@
-import UserRepo from "../repositories/user";
-import { UserRegisterDTO, UserLoginDTO } from "../dtos/auth.dto";
+import UserRepo from "../../repositories/user.respository";
+import { UserRegisterDTO, UserLoginDTO } from "../../api/auth/auth.dto";
 import bcrypt from "bcryptjs";
-import { emailQueue } from "../config/queue";
-import { resetPasswordType } from "../types/utilTypes";
+import { emailQueue } from "../../config/queue";
+import { resetPasswordType } from "../../types/utilTypes";
 import { TokenExpiredError } from "jsonwebtoken";
-import { User } from "../generated/prisma";
+import { User } from "../../generated/prisma";
 import {
   generateJWT,
   generateRefreshJwt,
   verifyAccessJwt,
   verifyRefreshJwt,
-} from "../utils/token";
-import { GoneError } from "../utils/error";
+} from "../../utils/token";
+import { GoneError } from "../../utils/error";
 
-class authService {
-  static async registerUser(
+class AuthService {
+  constructor(private userRepository: UserRepo) {}
+
+  async registerUser(
     data: UserRegisterDTO
   ): Promise<User & { access_token: string; refresh_token: string }> {
     try {
       const hashed_password = bcrypt.hashSync(data.password);
 
       const { password, ...userDetails } = data;
-      const user = await UserRepo.createUser({
+      const user = await this.userRepository.createUser({
         ...userDetails,
         hashed_password,
       });
@@ -36,7 +38,7 @@ class authService {
         expiration: "1hr",
       });
 
-      await UserRepo.updateUserById({
+      await this.userRepository.updateUserById({
         id: user.id,
         refresh_token,
       });
@@ -47,9 +49,9 @@ class authService {
     }
   }
 
-  static async getEmailVerificationLink(email: string): Promise<boolean> {
+  async getEmailVerificationLink(email: string): Promise<boolean> {
     try {
-      const user = await UserRepo.getUserByEmail(email);
+      const user = await this.userRepository.getUserByEmail(email);
 
       if (!user) return false;
       const verificationToken = generateJWT({ email: user.email });
@@ -65,13 +67,13 @@ class authService {
       throw err;
     }
   }
-  static async loginUser(
+  async loginUser(
     data: UserLoginDTO
   ): Promise<
     (User & { access_token: string; refresh_token: string }) | string
   > {
     try {
-      const user = await UserRepo.getUserByEmail(data.email);
+      const user = await this.userRepository.getUserByEmail(data.email);
       const hashed_password = user?.hashed_password as string;
       if (!user) return "Email not found";
       const auth = bcrypt.compareSync(data.password, hashed_password);
@@ -80,7 +82,7 @@ class authService {
       const access_token = generateJWT({ id: user.id });
       const refresh_token = generateRefreshJwt({ user });
 
-      await UserRepo.updateUserById({
+      await this.userRepository.updateUserById({
         refresh_token,
       });
       return { ...user, access_token, refresh_token };
@@ -91,10 +93,10 @@ class authService {
     }
   }
 
-  static async loginWithGoogle(profile: { [key: string]: any }) {
+  async loginWithGoogle(profile: { [key: string]: any }) {
     const email = profile.email as string;
     const username = profile.displayName as string;
-    let user = await UserRepo.getUserByEmail(email);
+    let user = await this.userRepository.getUserByEmail(email);
     let accessToken;
     let refreshToken;
 
@@ -105,7 +107,7 @@ class authService {
       console.log(user);
     }
 
-    const newUser = await UserRepo.createUser({
+    const newUser = await this.userRepository.createUser({
       email,
       username,
       refresh_token: refreshToken,
@@ -118,26 +120,31 @@ class authService {
 
     return { accessToken, refreshToken, ...user };
   }
-  static async verifyEmail(token: string): Promise<boolean> {
+  async verifyEmail(token: string): Promise<boolean> {
     try {
       const decoded = verifyAccessJwt(token) as { [key: string]: any };
-      const user = await UserRepo.getUserByEmail(decoded.email);
+      const user = await this.userRepository.getUserByEmail(decoded.email);
       if (user) {
-        UserRepo.updateUserByEmail({ ...user, email_verified: true });
+        this.userRepository.updateUserByEmail({
+          ...user,
+          email_verified: true,
+        });
         return true;
       }
       return false;
     } catch (err) {
-      if (err instanceof TokenExpiredError){
-        throw new GoneError("Verification link has expired, request for a new one")
+      if (err instanceof TokenExpiredError) {
+        throw new GoneError(
+          "Verification link has expired, request for a new one"
+        );
       }
       throw err;
     }
   }
 
-  static async forgetPassword(email: string): Promise<boolean> {
+  async forgetPassword(email: string): Promise<boolean> {
     try {
-      const user = await UserRepo.getUserByEmail(email);
+      const user = await this.userRepository.getUserByEmail(email);
       if (!user) return false;
 
       const verificationToken = generateJWT({ email: user.email });
@@ -155,10 +162,10 @@ class authService {
     }
   }
 
-  static async resetPassword(data: resetPasswordType): Promise<boolean> {
+  async resetPassword(data: resetPasswordType): Promise<boolean> {
     try {
       const { oldPassword, newPassword, email } = data;
-      let user = (await UserRepo.getUserByEmail(email)) as User;
+      let user = (await this.userRepository.getUserByEmail(email)) as User;
       const hashed_password = user.hashed_password as string;
       const passwordVersionCheck = bcrypt.compareSync(
         newPassword,
@@ -170,14 +177,14 @@ class authService {
       const newHashedPassword = bcrypt.hashSync(newPassword);
       user = { ...user, hashed_password: newHashedPassword };
 
-      await UserRepo.updateUserByEmail(user);
+      await this.userRepository.updateUserByEmail(user);
       return true;
     } catch (err) {
       throw err;
     }
   }
 
-  static async getAccessToken(token: string): Promise<any> {
+  async getAccessToken(token: string): Promise<any> {
     try {
       const user = verifyRefreshJwt(token) as { [key: string]: string };
 
@@ -189,15 +196,15 @@ class authService {
     }
   }
 
-  static async logoutUser(id: string): Promise<boolean> {
+  async logoutUser(id: string): Promise<boolean> {
     try {
-      const user = await UserRepo.getUserById(Number(id));
+      const user = await this.userRepository.getUserById(Number(id));
 
       if (!user) return false;
 
       const { refresh_token, ...userDetails } = user;
 
-      await UserRepo.updateUserById(userDetails);
+      await this.userRepository.updateUserById(userDetails);
 
       return true;
     } catch (err) {
@@ -206,4 +213,4 @@ class authService {
   }
 }
 
-export default authService;
+export default AuthService;

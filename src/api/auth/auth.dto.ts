@@ -1,6 +1,9 @@
-import { registrationSchema, loginSchema } from "../validations/userValidation";
+import {
+  registrationSchema,
+  loginSchema,
+} from "../../validations/userValidation";
 import { ValidationResult } from "joi";
-import { Roles } from "../types/utilTypes";
+import { Roles } from "../../types/utilTypes";
 export class UserRegisterDTO {
   constructor(
     public username: string,
@@ -30,6 +33,7 @@ export class UserLoginDTO {
 
   static validate(data: any): ValidationResult {
     const { error, value } = loginSchema.validate(data);
+
     if (!error) {
       const dtoInstance = new UserLoginDTO(value.email, value.password);
       return { error, value: dtoInstance };
