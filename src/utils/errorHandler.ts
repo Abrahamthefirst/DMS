@@ -11,8 +11,11 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  let statusCode = 500;
   let message = "Internal server error";
+  let statusCode = 500;
+  if (res.statusCode === 404) {
+    message = "Not found";
+  }
 
   if (
     err instanceof ConflictError ||
@@ -23,6 +26,5 @@ export const errorHandler = (
     statusCode = err.status;
     message = err.message;
   }
-
   res.status(statusCode).json({ message });
 };

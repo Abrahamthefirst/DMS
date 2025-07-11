@@ -10,12 +10,12 @@ export interface MailClient {
 
 export class NodemailerClient implements MailClient {
   private transporter;
-  constructor() {
+  constructor(private user: string, private pass: string) {
     this.transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        user: this.user,
+        pass: this.pass,
       },
     });
   }

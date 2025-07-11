@@ -1,28 +1,22 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
-import authRoute from "./routes/authRoute";
-import authenticate from "./middleware/authenticate";
-import adminAuthorization from "./middleware/adminAuthorization";
-import editorAuthoriation from "./middleware/editorAuthorization";
 
-import { googleAuthStrategy } from "./middleware/passport";
-import { errorHandler } from "./utils/errorHandler";
 import passport from "passport";
+import { googleAuthStrategy } from "./middleware/passport";
+import getDefaultConfig from "./config/config";
+import { DependencyManager } from "./classes/dep_manager";
+import { errorHandler } from "./utils/errorHandler";
+import { IAppConfig } from "./utils/interface";
+import { registerAllApplicationRoutes } from "./routes/allRoutes";
 dotenv.config();
-const app = express();
-app.use(cors());
-app.use(passport.initialize());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-googleAuthStrategy();
 
-const PORT = process.env.PORT;
 declare module "express-serve-static-core" {
   interface Request {
     user?: {
       [key: string]: any;
     };
+    app_config: IAppConfig;
+    dependencyManager: DependencyManager;
   }
 }
 
@@ -32,16 +26,34 @@ declare module "express" {
   }
 }
 
-app.use("/auth", authRoute);
+const startApp = async (dep_man: DependencyManager) => {
+  const app = express();
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json());
+  app.use(passport.initialize());
+  googleAuthStrategy();
+  registerAllApplicationRoutes(app, dep_man);
+  app.use((req, res, next) => {
+    req.app_config = dep_man.getConfig();
+    req.dependencyManager = dep_man;
+  });
 
+  const port = dep_man.getConfig()?.port;
+  app.listen(port, () => {
+    if (port) {
+      console.log("Server is running on port ", port);
+    } else {
+      console.log("Server is running");
+    }
+  });
 
-app.use(authenticate);
+  app.use(errorHandler);
+};
 
-app.use(adminAuthorization);
-app.use(editorAuthoriation);
-
-app.use(errorHandler);
-
-app.listen(PORT, () => {
-  console.log(`server is listening on ${PORT}`);
-});
+(async () => {
+  startApp(await DependencyManager.getInstance(getDefaultConfig())).catch(
+    (err) => {
+      console.log(err, "This is th eror");
+    }
+  );
+})();
