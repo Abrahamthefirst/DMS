@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import AuthService from "../../modules/auth/auth.service";
 import { GoneError } from "../../utils/error";
-import { UserLoginDTO, UserRegisterDTO } from "./auth.dto";
+import {
+  BasicLoginRequestDTO,
+  BasicRegistrationRequestDTO,
+} from "./dtos/request.dto";
 class AuthController {
   constructor(private authService: AuthService) {}
   signup = async (
@@ -10,13 +13,12 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { error, value } = UserRegisterDTO.validate(req.body);
-
-      if (error) {
-        res.status(400).json({ message: error.message });
+      const { errMsg, value } = BasicRegistrationRequestDTO.validate(req.body);
+      if (errMsg) {
+        res.status(400).json({ message: errMsg });
         return;
       }
-      const user = await this.authService.registerUser(req.body);
+      const user = await this.authService.registerUser(value);
       const { refresh_token, ...userDetails } = user;
 
       res.cookie("jwt", refresh_token, {
@@ -27,6 +29,7 @@ class AuthController {
       });
 
       res.status(200).json(user);
+      return;
     } catch (err) {
       next(err);
       throw err;
@@ -38,9 +41,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { error, value } = UserLoginDTO.validate(req.body);
-      if (error) {
-        res.status(400).json({ message: error.message });
+      const { errMsg, value } = BasicLoginRequestDTO.validate(req.body);
+      if (errMsg) {
+        res.status(400).json({ message: errMsg });
         return;
       }
       const user = await this.authService.loginUser(value);
@@ -50,16 +53,18 @@ class AuthController {
       }
 
       const { refresh_token, ...userDetails } = user;
-
+      console.log("Refresh Token", refresh_token)
       res.cookie("jwt", refresh_token, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000,
       });
-      res.status(200).json(userDetails);
+      res.status(200);
+      res.json(userDetails);
+      return;
     } catch (err) {
-      console.log(err);
+      next(err);
       throw err;
     }
   };
@@ -75,6 +80,7 @@ class AuthController {
       );
       if (response)
         res.json({ message: "Check your email for a verification link" });
+      return;
     } catch (err) {
       next(err);
       console.log(err);
@@ -93,7 +99,8 @@ class AuthController {
       // Come back to put a frontend url
       if (response) res.redirect("");
 
-      return res.redirect("");
+      res.redirect("");
+      return;
     } catch (err) {
       next(err);
     }
@@ -112,10 +119,11 @@ class AuthController {
       }
 
       res.status(200).json({ message: "Check mail to reset your password" });
+      return;
     } catch (err) {
       console.log(err);
-
       next(err);
+      return;
     }
   };
   resetPassword = async (
@@ -137,8 +145,9 @@ class AuthController {
         .status(200)
         .json({ message: "Password has been updated successfully" });
     } catch (err) {
-      next(err);
       console.log(err);
+      next(err);
+      return;
     }
   };
   refreshToken = async (
@@ -157,6 +166,7 @@ class AuthController {
         res.status(200).json({ message: "You need to login" });
       }
       next(err);
+      return;
     }
   };
   logout = async (
@@ -171,6 +181,7 @@ class AuthController {
     } catch (err) {
       console.log(err);
       next(err);
+      return;
     }
   };
 

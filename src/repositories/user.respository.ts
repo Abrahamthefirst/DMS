@@ -65,6 +65,7 @@ class UserRepo {
 
   async updateUserByEmail(user: Partial<User>): Promise<User | null> {
     try {
+      // handle if email not found
       const { email, ...data } = user;
       const userData = await this.prisma.user.update({
         where: {

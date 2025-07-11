@@ -1,5 +1,8 @@
 import UserRepo from "../../repositories/user.respository";
-import { UserRegisterDTO, UserLoginDTO } from "../../api/auth/auth.dto";
+import {
+  BasicRegistrationRequestDTO,
+  BasicLoginRequestDTO,
+} from "../../api/auth/dtos/request.dto";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "../../config/queue";
 import { resetPasswordType } from "../../types/utilTypes";
@@ -17,7 +20,7 @@ class AuthService {
   constructor(private userRepository: UserRepo) {}
 
   async registerUser(
-    data: UserRegisterDTO
+    data: BasicRegistrationRequestDTO
   ): Promise<User & { access_token: string; refresh_token: string }> {
     try {
       const hashed_password = bcrypt.hashSync(data.password);
@@ -68,24 +71,25 @@ class AuthService {
     }
   }
   async loginUser(
-    data: UserLoginDTO
-  ): Promise<
-    (User & { access_token: string; refresh_token: string }) | string
+    data: BasicLoginRequestDTO
+  ): Promise< Omit<User & { access_token: string; refresh_token: string}, "hashed_password"  > | string
   > {
     try {
       const user = await this.userRepository.getUserByEmail(data.email);
-      const hashed_password = user?.hashed_password as string;
+      const hashedPassword = user?.hashed_password as string;
       if (!user) return "Email not found";
-      const auth = bcrypt.compareSync(data.password, hashed_password);
+      const isPasswordCorrect = bcrypt.compareSync(data.password, hashedPassword);
 
-      if (!auth) return "Password incorrect";
+      if (!isPasswordCorrect) return "Password incorrect";
       const access_token = generateJWT({ id: user.id });
       const refresh_token = generateRefreshJwt({ user });
 
       await this.userRepository.updateUserById({
+        id: user.id,
         refresh_token,
       });
-      return { ...user, access_token, refresh_token };
+      const { hashed_password, ...userData } = user;
+      return { ...userData, access_token, refresh_token };
     } catch (err) {
       console.log(err);
 

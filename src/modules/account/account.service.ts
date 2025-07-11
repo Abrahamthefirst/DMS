@@ -7,7 +7,7 @@ class AccountService {
     private userRepository: UserRepository,
     private uploadService: UploadService
   ) {}
-  async getUser(id: string): Promise<User | null> {
+  async getUserById(id: string): Promise<User | null> {
     try {
       const user = await this.userRepository.getUserById(Number(id));
       return user;
@@ -43,7 +43,7 @@ class AccountService {
     }
   }
 
-  async upload(id: string, files: Express.Multer.File[]): Promise<void> {
+  async uploadUserDocument(id: string, files: Express.Multer.File[]): Promise<void> {
     try {
       // const user = await this.uploadService.upload(id, files);
       // res.status(200).json({ user });

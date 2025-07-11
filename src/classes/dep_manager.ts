@@ -32,7 +32,7 @@ export class DependencyManager {
   private repositories: Repositories | null = null;
   private static instance: DependencyManager | null = null;
 
-  private constructor(private cfg: IAppConfig) {}
+  public constructor(private cfg: IAppConfig) {}
 
   setupPrisma() {
     if (!this.prisma) {
@@ -64,11 +64,11 @@ export class DependencyManager {
     return this.cloudinary;
   }
   public static async getInstance(config: IAppConfig) {
-    if (!DependencyManager.instance) {
+    if ( !DependencyManager.instance) {
       DependencyManager.instance = new DependencyManager(config);
       await DependencyManager.instance.init();
     }
-
+    
     return DependencyManager.instance;
   }
 

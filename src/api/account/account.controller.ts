@@ -9,7 +9,6 @@ class AccountController {
     res: Response,
     next: NextFunction
   ) => {
-    console.log("flash");
     res.json({ message: "Cook" });
   };
   uploadDocuments = async (

@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { createAuthRouter } from "./authRoute";
-import { createUserRouter } from "./userRoute";
+import { createAuthRouter } from "./auth.routes";
+import { createUserRouter } from "./user.routes";
 import authenticate from "../middleware/authenticate";
 import adminAuthorization from "../middleware/adminAuthorization";
 import AuthController from "../api/auth/auth.controller";
